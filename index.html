@@ -368,6 +368,137 @@
             display: block;
         }
         
+        /* Admin Panel Styles */
+        .admin-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--neon-orange);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 123, 0, 0.5);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 123, 0, 0.7);
+        }
+        
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 999;
+        }
+        
+        .admin-panel.active {
+            right: 0;
+        }
+        
+        .admin-header {
+            color: var(--neon-orange);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+        
+        .admin-input-group {
+            margin-bottom: 15px;
+        }
+        
+        .admin-label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--neon-blue);
+        }
+        
+        .admin-input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(5, 5, 16, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 5px;
+        }
+        
+        .admin-button {
+            padding: 10px 15px;
+            background: rgba(0, 240, 252, 0.1);
+            border: 1px solid rgba(0, 240, 252, 0.2);
+            color: var(--neon-blue);
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .admin-button:hover {
+            background: rgba(0, 240, 252, 0.2);
+        }
+        
+        .admin-button.danger {
+            background: rgba(255, 42, 109, 0.1);
+            border-color: rgba(255, 42, 109, 0.2);
+            color: var(--neon-pink);
+        }
+        
+        .admin-button.danger:hover {
+            background: rgba(255, 42, 109, 0.2);
+        }
+        
+        .uid-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .uid-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: rgba(5, 5, 16, 0.5);
+            margin-bottom: 5px;
+            border-radius: 5px;
+            border-left: 3px solid var(--neon-purple);
+        }
+        
+        .uid-item:hover {
+            background: rgba(5, 5, 16, 0.7);
+        }
+        
+        .uid-actions i {
+            margin-left: 10px;
+            cursor: pointer;
+            color: var(--muted);
+            transition: color 0.2s ease;
+        }
+        
+        .uid-actions i:hover {
+            color: var(--neon-blue);
+        }
+        
+        .uid-actions i.fa-trash:hover {
+            color: var(--neon-pink);
+        }
+        
         /* Responsive Design */
         @media (max-width: 768px) {
             .section-title {
@@ -389,6 +520,15 @@
             
             #resultNumber {
                 font-size: 3rem;
+            }
+            
+            .admin-panel {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .admin-panel.active {
+                right: 0;
             }
         }
     </style>
@@ -453,6 +593,37 @@
         </div>
     </div>
 
+    <!-- Admin Panel Toggle Button -->
+    <div class="admin-btn" id="adminToggleBtn">
+        <i class="fas fa-cog"></i>
+    </div>
+    
+    <!-- Admin Panel -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">Admin Panel</div>
+        
+        <div class="admin-input-group">
+            <label class="admin-label">Admin Password</label>
+            <input type="password" id="adminPassword" class="admin-input" placeholder="Enter admin password" />
+        </div>
+        
+        <button class="admin-button" onclick="loginAdmin()">Login</button>
+        <button class="admin-button danger" onclick="hideAdminPanel()">Close</button>
+        
+        <div id="adminContent" style="display: none;">
+            <div class="admin-input-group">
+                <label class="admin-label">Add New UID</label>
+                <input type="text" id="newUid" class="admin-input" placeholder="Enter UID to add" />
+                <button class="admin-button" onclick="addUid()" style="margin-top: 10px;">Add UID</button>
+            </div>
+            
+            <div class="uid-list" id="uidList">
+                <h3>Authorized UIDs</h3>
+                <!-- UID list will be populated here -->
+            </div>
+        </div>
+    </div>
+
     <div id="toast"></div>
 
     <!-- Hidden audio element for success sound -->
@@ -461,8 +632,12 @@
     </audio>
 
     <script>
-        // List of allowed UIDs
-        const allowedUIDs = [
+        // Admin password (change this to your secure password)
+        const ADMIN_PASSWORD = "admin123";
+        let isAdminLoggedIn = false;
+        
+        // List of allowed UIDs (loaded from localStorage or default)
+        let allowedUIDs = JSON.parse(localStorage.getItem('allowedUIDs')) || [
             "109686", "109436", "109097", "107766",
             "107226", "106090", "105252", "103603",
             "103381", "102907", "102837", "102752",
@@ -470,9 +645,20 @@
             "111258", "111374", "111930", "112150",
             "112435", "112478", "112534", "112952",
             "113373", "114474", "114911", "115884",
-            "117707", "117739", "117077"
+            "117707", "117739", "117077", "120472",
         ];
-
+        
+        // Save UIDs to localStorage
+        function saveUIDs() {
+            localStorage.setItem('allowedUIDs', JSON.stringify(allowedUIDs));
+        }
+        
+        // Initialize the app
+        function initApp() {
+            updateUidList();
+        }
+        
+        // Verify UID function
         function verifyUID() {
             const uidInput = document.getElementById('uidInput').value.trim();
             const messageElement = document.getElementById('message');
@@ -581,6 +767,118 @@
             
             showToast('Calculated', `Result: ${finalResult} (${resultType})`);
         }
+        
+        // Toast notification function
+        function showToast(title, message = '') {
+            const toast = document.getElementById('toast');
+            const toastItem = document.createElement('div');
+            toastItem.className = 'toast-item';
+            toastItem.innerHTML = `<strong>${title}</strong>${message ? '<br>' + message : ''}`;
+            toast.appendChild(toastItem);
+            
+            // Show toast
+            setTimeout(() => {
+                toastItem.classList.add('show');
+            }, 100);
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                toastItem.classList.remove('show');
+                setTimeout(() => {
+                    toast.removeChild(toastItem);
+                }, 400);
+            }, 5000);
+        }
+        
+        // Admin Panel Functions
+        function toggleAdminPanel() {
+            const adminPanel = document.getElementById('adminPanel');
+            adminPanel.classList.toggle('active');
+        }
+        
+        function hideAdminPanel() {
+            const adminPanel = document.getElementById('adminPanel');
+            adminPanel.classList.remove('active');
+        }
+        
+        function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                isAdminLoggedIn = true;
+                document.getElementById('adminContent').style.display = 'block';
+                document.getElementById('adminPassword').value = '';
+                showToast('Admin Login', 'You are now logged in as admin');
+            } else {
+                showToast('Error', 'Incorrect admin password');
+            }
+        }
+        
+        function addUid() {
+            if (!isAdminLoggedIn) {
+                showToast('Error', 'Please login as admin first');
+                return;
+            }
+            
+            const newUid = document.getElementById('newUid').value.trim();
+            
+            if (!newUid) {
+                showToast('Error', 'Please enter a UID');
+                return;
+            }
+            
+            if (allowedUIDs.includes(newUid)) {
+                showToast('Warning', 'This UID already exists');
+                return;
+            }
+            
+            allowedUIDs.push(newUid);
+            saveUIDs();
+            updateUidList();
+            document.getElementById('newUid').value = '';
+            showToast('Success', `UID ${newUid} added successfully`);
+        }
+        
+        function removeUid(uid) {
+            if (!isAdminLoggedIn) {
+                showToast('Error', 'Please login as admin first');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to remove UID ${uid}?`)) {
+                allowedUIDs = allowedUIDs.filter(item => item !== uid);
+                saveUIDs();
+                updateUidList();
+                showToast('Success', `UID ${uid} removed successfully`);
+            }
+        }
+        
+        function updateUidList() {
+            const uidList = document.getElementById('uidList');
+            // Clear existing list
+            while (uidList.children.length > 1) {
+                uidList.removeChild(uidList.lastChild);
+            }
+            
+            // Add current UIDs
+            allowedUIDs.forEach(uid => {
+                const uidItem = document.createElement('div');
+                uidItem.className = 'uid-item';
+                uidItem.innerHTML = `
+                    <span>${uid}</span>
+                    <div class="uid-actions">
+                        <i class="fas fa-trash" onclick="removeUid('${uid}')"></i>
+                    </div>
+                `;
+                uidList.appendChild(uidItem);
+            });
+        }
+        
+        // Event Listeners
+        document.getElementById('adminToggleBtn').addEventListener('click', toggleAdminPanel);
+        
+        // Initialize the app
+        window.onload = initApp;
     </script>
 </body>
 </html>
