@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottery Calculation System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --neon-blue: #0ff0fc;
+            --neon-pink: #ff2a6d;
+            --neon-purple: #b967ff;
+            --neon-green: #00ff88;
+            --neon-orange: #ff7b00;
+            --dark-bg: #0a0a1a;
+            --panel-bg: rgba(10, 10, 26, 0.9);
+            --panel-border: rgba(0, 240, 252, 0.14);
+            --muted: #9aa0a6;
+            --win-green: #00ff88;
+            --lose-red: #ff5555;
+            --text-color: #ffffff;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #030312 0%, #0b0b1a 100%);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+        
+        /* Main Content */
+        .main-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .card {
+            background: var(--panel-bg);
+            border-radius: 16px;
+            padding: 40px;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 0 30px rgba(0, 240, 252, 0.1), 0 8px 30px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            margin: 0 auto;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0,240,252,0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .section-title {
+            color: var(--neon-blue);
+            text-shadow: 0 0 15px rgba(0, 240, 252, 0.5);
+            margin-bottom: 30px;
+            margin-top: 10px;
+            font-size: 2rem;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            margin: 15px auto 0;
+        }
+        
+        /* UID Input Section */
+        .uid-input {
+            padding: 14px;
+            border-radius: 8px;
+            background: rgba(5, 5, 16, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: inherit;
+            font-size: 1.2rem;
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .verify-btn {
+            padding: 15px 30px;
+            border-radius: 8px;
+            background: rgba(0, 240, 252, 0.1);
+            border: 1px solid rgba(0, 240, 252, 0.2);
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .verify-btn:hover {
+            background: rgba(0, 240, 252, 0.2);
+            box-shadow: 0 0 10px rgba(0, 240, 252, 0.3);
+        }
+        
+        .contact-btn {
+            padding: 15px 30px;
+            border-radius: 8px;
+            background: rgba(255, 42, 109, 0.1);
+            border: 1px solid rgba(255, 42, 109, 0.2);
+            color: var(--neon-pink);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .contact-btn:hover {
+            background: rgba(255, 42, 109, 0.2);
+            box-shadow: 0 0 10px rgba(255, 42, 109, 0.3);
+        }
+        
+        .message {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            min-height: 30px;
+        }
+        
+        .error-message {
+            color: var(--lose-red);
+        }
+        
+        .success-message {
+            color: var(--neon-green);
+        }
+        
+        /* Number Analysis Section */
+        .analysis-section {
+            margin: 30px 0;
+        }
+        
+        .analysis-header {
+            color: var(--neon-purple);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            margin-top: -25px;
+            text-shadow: 0 0 10px rgba(185, 103, 255, 0.5);
+        }
+        
+        .number-input-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        .number-input {
+            padding: 18px;
+            border-radius: 12px;
+            background: rgba(5, 5, 16, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            width: 100%;
+            text-align: center;
+            letter-spacing: 5px;
+            box-shadow: 0 0 15px rgba(0, 240, 252, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .number-input:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 240, 252, 0.3);
+        }
+        
+        .number-input-label {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: var(--panel-bg);
+            padding: 0 10px;
+            font-size: 0.9rem;
+            color: var(--neon-blue);
+        }
+        
+        /* Number Pad */
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .number-btn {
+            padding: 18px 0;
+            border-radius: 12px;
+            background: rgba(10, 10, 30, 0.7);
+            border: 1px solid rgba(0, 240, 252, 0.2);
+            color: var(--neon-blue);
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .number-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 240, 252, 0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .number-btn:hover {
+            background: rgba(0, 240, 252, 0.15);
+            box-shadow: 0 0 15px rgba(0, 240, 252, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .number-btn:hover::before {
+            opacity: 1;
+        }
+        
+        .number-btn:active {
+            transform: translateY(0);
+        }
+        
+        .clear, .calculate {
+            grid-column: span 1;
+        }
+        
+        .clear {
+            background: rgba(255, 42, 109, 0.1);
+            border-color: rgba(255, 42, 109, 0.2);
+            color: var(--neon-pink);
+        }
+        
+        .clear:hover {
+            background: rgba(255, 42, 109, 0.2);
+            box-shadow: 0 0 15px rgba(255, 42, 109, 0.3);
+        }
+        
+        .calculate {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: rgba(0, 255, 136, 0.2);
+            color: var(--neon-green);
+        }
+        
+        .calculate:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        /* Result Display */
+        .result-display {
+            background: rgba(5, 5, 16, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 240, 252, 0.1);
+            position: relative;
+        }
+        
+        .result-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue), var(--neon-green));
+        }
+        
+        #resultNumber {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .result-type {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .footer {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-top: 30px;
+            line-height: 1.5;
+        }
+        
+        /* Animation for result */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .result-animate {
+            animation: pulse 0.5s ease;
+        }
+        
+        .toast-item {
+            background: rgba(10, 10, 26, 0.95);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+            margin-top: 15px;
+            border-left: 5px solid var(--neon-blue);
+            font-size: 1.05rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.4s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .toast-item.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Page Transitions */
+        .page {
+            display: none;
+            width: 100%;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .card {
+                padding: 30px 20px;
+            }
+            
+            .number-pad {
+                gap: 10px;
+            }
+            
+            .number-btn {
+                padding: 15px 0;
+                font-size: 1.3rem;
+            }
+            
+            #resultNumber {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- UID Verification Page -->
+    <div class="main-container page active" id="uidVerificationPage">
+        <div class="card">
+            <h1 class="section-title">UID Verification</h1>
+            <p>Please enter your game UID to access the calculation system</p>
+            
+            <input type="text" id="uidInput" class="uid-input" placeholder="Enter your UID" />
+            
+            <button class="verify-btn" onclick="verifyUID()">VERIFY UID</button>
+            
+            <div id="message" class="message"></div>
+            
+            <a href="https://t.me/leostrike223" target="_blank" class="contact-btn" id="contactBtn" style="display: none;">
+                <i class="fab fa-telegram"></i> Contact Developer
+            </a>
+        </div>
+    </div>
+    
+    <!-- Number Analysis Page -->
+    <div class="main-container page" id="numberAnalysisPage">
+        <div class="card">
+            <h1 class="section-title" style="margin-top: -20px;">Lottery Calculation System</h1>
+            
+            <div class="analysis-section">
+                <h2 class="analysis-header">Number Analysis</h2>
+                
+                <div class="number-input-container">
+                    <div class="number-input-label">ENTER 5 DIGITS</div>
+                    <input type="text" id="numberInput" class="number-input" placeholder="00000" maxlength="5" readonly />
+                </div>
+                
+                <div class="number-pad">
+                    <button class="number-btn" onclick="addNumber(1)">1</button>
+                    <button class="number-btn" onclick="addNumber(2)">2</button>
+                    <button class="number-btn" onclick="addNumber(3)">3</button>
+                    <button class="number-btn" onclick="addNumber(4)">4</button>
+                    <button class="number-btn" onclick="addNumber(5)">5</button>
+                    <button class="number-btn" onclick="addNumber(6)">6</button>
+                    <button class="number-btn" onclick="addNumber(7)">7</button>
+                    <button class="number-btn" onclick="addNumber(8)">8</button>
+                    <button class="number-btn" onclick="addNumber(9)">9</button>
+                    <button class="number-btn" onclick="addNumber(0)">0</button>
+                    <button class="number-btn clear" onclick="clearInput()">CLEAR</button>
+                    <button class="number-btn calculate" onclick="calculateNumbers()">CALCULATE</button>
+                </div>
+                
+                <div class="result-display" id="calculationResult">
+                    <div id="resultNumber">-</div>
+                    <div id="resultType" class="result-type"></div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <i class="fas fa-exclamation-triangle" style="color: var(--neon-orange); margin-right: 5px;"></i>
+                Use at your own risk. Developed by Pai
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <!-- Hidden audio element for success sound -->
+    <audio id="successSound" preload="auto">
+        <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_2b2ba4de45.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // List of allowed UIDs
+        const allowedUIDs = [
+            "109686", "109436", "109097", "107766",
+            "107226", "106090", "105252", "103603",
+            "103381", "102907", "102837", "102752",
+            "102726", "102681", "102640", "102608",
+            "111258", "111374", "111930", "112150",
+            "112435", "112478", "112534", "112952",
+            "113373", "114474", "114911", "115884",
+            "117707", "117739", "117077"
+        ];
+
+        function verifyUID() {
+            const uidInput = document.getElementById('uidInput').value.trim();
+            const messageElement = document.getElementById('message');
+            const contactBtn = document.getElementById('contactBtn');
+            const successSound = document.getElementById('successSound');
+            
+            if (!uidInput) {
+                messageElement.textContent = "Please enter your UID";
+                messageElement.className = "message error-message";
+                contactBtn.style.display = "none";
+                return;
+            }
+            
+            if (allowedUIDs.includes(uidInput)) {
+                // Play success sound
+                successSound.play().catch(e => console.log("Audio play failed:", e));
+                
+                // UID is allowed - show calculation system
+                messageElement.textContent = "UID verified successfully! Loading system...";
+                messageElement.className = "message success-message";
+                contactBtn.style.display = "none";
+                
+                // Hide UID verification and show calculation system after delay
+                setTimeout(() => {
+                    document.getElementById('uidVerificationPage').classList.remove('active');
+                    document.getElementById('numberAnalysisPage').classList.add('active');
+                    showToast("Welcome to the Lottery Calculation System");
+                }, 1500);
+            } else {
+                // UID not allowed
+                messageElement.innerHTML = "Access denied. Your UID is not authorized.<br>You need to contact developer @leostrike223";
+                messageElement.className = "message error-message";
+                contactBtn.style.display = "block";
+                showToast("UID not authorized", "Contact developer for access");
+            }
+        }
+        
+        // Number Analysis Functions
+        function addNumber(num) {
+            const input = document.getElementById('numberInput');
+            const currentValue = input.value;
+            
+            if (currentValue.length >= 5) {
+                showToast('Maximum 5 digits allowed');
+                return;
+            }
+            
+            input.value = currentValue + num;
+        }
+        
+        function clearInput() {
+            document.getElementById('numberInput').value = '';
+            resetResultDisplay();
+        }
+        
+        function resetResultDisplay() {
+            const resultNumber = document.getElementById('resultNumber');
+            const resultType = document.getElementById('resultType');
+            
+            resultNumber.textContent = '-';
+            resultNumber.style.color = '';
+            resultType.textContent = '';
+        }
+        
+        function calculateNumbers() {
+            const input = document.getElementById('numberInput').value.trim();
+            if (!input || input.length !== 5) {
+                showToast('Please enter exactly 5 digits');
+                return;
+            }
+            
+            const numbers = input.split('').map(n => parseInt(n, 10));
+            const step1 = numbers[4] - numbers[0];
+            const step2 = step1 - numbers[1];
+            
+            let finalResult;
+            if (step2 < 0) {
+                finalResult = Math.abs(step2);
+            } else {
+                finalResult = step2 % 10;
+            }
+            
+            if (finalResult >= 10) {
+                finalResult = finalResult % 10;
+            }
+            
+            const resultType = finalResult <= 4 ? 'SMALL' : 'BIG';
+            const resultColor = resultType === 'SMALL' ? 'var(--neon-pink)' : 'var(--neon-blue)';
+            
+            const resultNumber = document.getElementById('resultNumber');
+            const resultTypeElement = document.getElementById('resultType');
+            
+            resultNumber.textContent = finalResult;
+            resultNumber.style.color = resultColor;
+            resultTypeElement.textContent = resultType;
+            resultTypeElement.style.color = resultColor;
+            
+            // Add animation
+            resultNumber.classList.add('result-animate');
+            resultTypeElement.classList.add('result-animate');
+            
+            setTimeout(() => {
+                resultNumber.classList.remove('result-animate');
+                resultTypeElement.classList.remove('result-animate');
+            }, 500);
+            
+            showToast('Calculated', `Result: ${finalResult} (${resultType})`);
+        }
+    </script>
+</body>
+</html>
